@@ -36,7 +36,7 @@
                             </tr>
                         </thead>
                         <tbody id="productList">
-                            <tr v-for="product in products">
+                            <tr v-for="product in products" v-bind:key="product.id">
                                 <td>{{product.category }}</td>
                                 <td width="120">
                                     {{product.origin_price }}
