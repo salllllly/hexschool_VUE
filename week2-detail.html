@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div id="app" class="container">
+            <div class="row py-3">
+                <div class="col-md-6">
+                    <table class="table mt-4">
+                        <thead>
+                            <tr>
+                                <th>產品名稱</th>
+                                <th width="120">
+                                    原價
+                                </th>
+                                <th width="120">
+                                    售價
+                                </th>
+                                <th width="150">
+                                    是否啟用
+                                </th>
+                                <th width="120">
+                                    刪除
+                                </th>
+                                <th width="100">
+                                    查看
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList">
+                            <tr v-for="product in products">
+                                <td>{{product.category }}</td>
+                                <td width="120">
+                                    {{product.origin_price }}
+                                </td>
+                                <td width="120">
+                                    {{product.price }}
+                                </td>
+                                <td width="100">
+                                    <!-- <span v-if="product.is_enabled = 1" class="text-success">啟用</span>
+                                    <span v-else>未啟用</span> -->
+                                    <button type="button" class="btn btn-sm btn-success"
+                                        v-on:click="product.is_enabled=!product.is_enabled">啟用</button>
+                                </td>
+                                <td width="120">
+                                    <button type="button" class="btn btn-sm btn-outline-danger move deleteBtn"
+                                        data-action="remove" v-on:click="removeData" v-bind:data-id="product.id"> 刪除
+                                    </button>
+                                </td>
+                                <td width="100">
+                                    <button type="button" class="btn btn btn-sm btn-primary"
+                                        v-on:click="temp = product">查看</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>目前有 <span id="productCount">{{productCount}}</span> 項產品</p>
+                </div>
+                <div class="col-md-6">
+                    <h2>單一產品細節</h2>
+                    <template v-if="temp.category">
+                        <div class="card mb-3">
+                            <img v-bind:src="temp.imageUrl" class="card-img-top primary-image" alt="主圖">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ temp.title }}
+                                    <span class="badge bg-primary ms-2">{{ temp.category}}</span>
+                                </h5>
+                                <p class="card-text">商品描述：{{ temp.description }}</p>
+                                <p class="card-text">商品內容：{{ temp.content }}</p>
+                                <div class="d-flex">
+                                    <p class="card-text me-2">{{ temp.price }}</p>
+                                    <p class="card-text text-secondary"><del>{{ temp.origin_price }}</del></p>
+                                    {{ temp.unit }} / 元
+                                </div>
+                            </div>
+                        </div>
+                        <template v-if="temp.imagesUrl">
+                            <img v-for="img in temp.imagesUrl" v-bind:src="img" alt="" class="images m-2">
+                        </template>
+                    </template>
+                    <p v-else class="text-secondary">請選擇一個商品查看</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
+        integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
+        crossorigin='anonymous'></script>
+
+    <script type="module">
+        const url = 'https://vue3-course-api.hexschool.io/v2';
+        const path = 'sally_hexschool';
+        import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.26/vue.esm-browser.min.js";
+
+        const app = createApp({
+            data() {
+                return {
+                    url: 'https://vue3-course-api.hexschool.io/v2',
+                    path: 'sally_hexschool',
+                    products: [],
+                    productCount: '',
+                    temp: {}
+                }
+            },
+            methods: {
+                checkId() {
+                    const token = document.cookie.replace(/(?:(?:^|.*;\s*)hextoken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+                    axios.defaults.headers.common['Authorization'] = token;
+                    axios.post(`${this.url}/api/user/check`)
+                        .then((res) => {
+                            console.log(res)
+                        })
+                        .catch((error) => {
+                            console.dir(error)
+                            alert('尚未登入')
+                            window.location.href = 'week2.html'
+                        })
+                },
+                getData() {
+                    axios.get(`${this.url}/api/${this.path}/admin/products/all`)
+                        .then((res) => {
+                            // console.log(res.data.products)
+                            this.products = res.data.products
+                            this.productCount = Object.keys(res.data.products).length
+                        })
+                        .catch((error) => {
+                            console.dir(error)
+                        })
+                },
+                removeData(e) {
+                    const id = e.target.getAttribute('data-id');
+                    axios.delete(`${this.url}/api/${this.path}/admin/product/${id}`)
+                        .then((res) => {
+                            // console.log(res)
+                            this.getData()
+                        })
+                        .catch((error) => {
+                            console.dir(error)
+                        })
+                },
+            },
+            mounted() {
+                this.checkId()
+                this.getData()
+            }
+        });
+        app.mount('#app')
+    </script>
+</body>
+
+</html>
